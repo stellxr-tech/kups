@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Awareness Poster</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        #poster {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+        #poster img {
+            width: 100%;
+        }
+        #student-image-container {
+            position: absolute;
+            top: 10%; /* Adjust based on your poster layout */
+            left: 10%; /* Adjust based on your poster layout */
+            width: 25%; /* Adjust width as needed */
+            padding-top: 25%; /* Aspect ratio 1:1 for square */
+            overflow: hidden;
+            border: 2px solid #000;
+        }
+        #student-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        #student-name {
+            position: absolute;
+            top: calc(10% + 25% + -20px); /* Position below the student image */
+            left: 19%; /* Adjust based on your poster layout */
+            color: #000;
+            font-size: 2vw; /* Adjust based on your needs */
+            font-weight: bold;
+        }
+        footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: #f8f9fa;
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        /* Style for the link */
+        footer a {
+            color: #007bff; /* Bootstrap primary color */
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">KUPS <br>praveshanolsavam </h1>
+        <form id="posterForm" class="text-center">
+            <div class="form-group">
+                <label for="imageInput">Upload Image:</label>
+                <input type="file" class="form-control-file" id="imageInput" accept="image/*" required>
+            </div>
+            <div class="form-group">
+                <label for="nameInput">Enter Student Name:</label>
+                <input type="text" class="form-control" id="nameInput" placeholder="Student Name" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Generate Poster</button>
+        </form>
+        <div id="poster" class="position-relative">
+            <img id="poster-template" src="Kadankuni up school (4).png" alt="Poster Template">
+            <div id="student-image-container">
+                <img id="student-image" src="" alt="Student Image">
+            </div>
+            <div id="student-name"></div>
+        </div>
+  
+    </div>
+
+    <canvas id="canvas" style="display:none;"></canvas>
+    <footer>
+        Powered by <a href="https://stellxr.in" target="_blank">stellxr.in</a>
+    </footer>
+
+    <script>
+        document.getElementById('posterForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            // Get the uploaded image file and student name
+            const imageInput = document.getElementById('imageInput').files[0];
+            const nameInput = document.getElementById('nameInput').value;
+
+            // Display the student name
+            document.getElementById('student-name').innerText = nameInput;
+
+            // Display the student image
+            if (imageInput) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('student-image').src = e.target.result;
+                }
+                reader.readAsDataURL(imageInput);
+            }
+        });
+
+        document.getElementById('downloadBtn').addEventListener('click', function() {
+            const posterTemplate = document.getElementById('poster-template');
+            const studentImage = document.getElementById('student-image');
+            const studentName = document.getElementById('student-name');
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Ensure the canvas dimensions match the poster template dimensions
+            canvas.width = posterTemplate.naturalWidth;
+            canvas.height = posterTemplate.naturalHeight;
+
+            // Draw the poster template
+            const img = new Image();
+            img.src = posterTemplate.src;
+            img.onload = function() {
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                // Draw the student image
+                const studentImg = new Image();
+                studentImg.src = studentImage.src;
+                studentImg.onload = function() {
+                    const studentImgContainer = document.getElementById('student-image-container');
+                    const containerRect = studentImgContainer.getBoundingClientRect();
+                    const posterRect = document.getElementById('poster').getBoundingClientRect();
+                    const scaleX = canvas.width / posterRect.width;
+                    const scaleY = canvas.height / posterRect.height;
+                    const offsetX = (containerRect.left - posterRect.left) * scaleX;
+                    const offsetY = (containerRect.top - posterRect.top) * scaleY;
+                    const width = containerRect.width * scaleX;
+                    const height = containerRect.height * scaleY;
+                    ctx.drawImage(studentImg, offsetX, offsetY, width, height);
+
+                    // Draw the student name
+                    ctx.font = `${2 * scaleX}vw Arial`; // Adjust based on your needs
+                    ctx.fillStyle = '#000'; // Adjust based on your needs
+                    const nameX = offsetX;
+                    const nameY = offsetY + height + 10 * scaleY; // Place name 10px below the image
+                    ctx.fillText(studentName.innerText, nameX, nameY);
+
+                    // Trigger the download
+                    const link = document.createElement('a');
+                    link.download = 'poster.png';
+                    link.href = canvas.toDataURL();
+                    link.click();
+                };
+            };
+        });
+    </script>
+</body>
+</html>
